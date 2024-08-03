@@ -23,4 +23,9 @@ void main() {
     mockNewsService = MockNewsService();
     sut = NewsChangeNotifier(mockNewsService);
   });
+
+  test("Initial values are correct", () {
+    expect(sut.articles, []);
+    expect(sut.isLoading, false);
+  });
 }
