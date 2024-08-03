@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:testing_study/article.dart';
+import 'package:testing_study/article_page.dart';
 import 'package:testing_study/news_change_notifier.dart';
 import 'package:testing_study/news_page.dart';
 import 'package:testing_study/news_service.dart';
@@ -25,13 +26,6 @@ void main() {
         .thenAnswer((_) async => articlesFromService);
   }
 
-  void arrangeNewsServiceReturnsArticlesAfter2Seconds() {
-    when(() => mockNewsService.getArticles()).thenAnswer((_) async {
-      await Future.delayed(const Duration(seconds: 2));
-      return articlesFromService;
-    });
-  }
-
   Widget createWidgetUnderTest() {
     return MaterialApp(
       title: 'News App',
@@ -43,29 +37,16 @@ void main() {
     );
   }
 
-  testWidgets("title is displayed", (widgetTester) async {
-    arrangeNewsServiceReturnsArticles();
-    await widgetTester.pumpWidget(createWidgetUnderTest());
-    expect(find.text("News"), findsOneWidget);
-  });
-  testWidgets("loading indicator is displayed while waiting for articles",
+  testWidgets("tapping on the first article opens the article page",
       (widgetTester) async {
-    arrangeNewsServiceReturnsArticlesAfter2Seconds();
-    await widgetTester.pumpWidget(createWidgetUnderTest());
-    await widgetTester.pump(const Duration(milliseconds: 500));
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    await widgetTester.pumpAndSettle();
-  });
-
-  testWidgets("articles are displayed", (widgetTester) async {
     arrangeNewsServiceReturnsArticles();
     await widgetTester.pumpWidget(createWidgetUnderTest());
     await widgetTester.pump();
-    for (final article in articlesFromService) {
-      expect(find.text(article.title), findsOneWidget);
-      expect(find.text(article.content), findsOneWidget);
-    }
-
+    await widgetTester.tap(find.text("content1"));
     await widgetTester.pumpAndSettle();
+    expect(find.byType(NewsPage), findsNothing);
+    expect(find.byType(ArticlePage), findsOneWidget);
+    expect(find.text("title1"), findsOneWidget);
+    expect(find.text("content1"), findsOneWidget);
   });
 }
